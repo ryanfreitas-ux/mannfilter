@@ -54,6 +54,7 @@ function Index() {
   const [navOpen, setNavOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [fileName, setFileName] = useState<string | null>(null);
 
   const openModal = () => {
     setSuccess(null);
