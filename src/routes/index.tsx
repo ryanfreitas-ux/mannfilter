@@ -98,7 +98,7 @@ function Index() {
         p_data_compra: data_compra,
         p_canal: canal,
         p_numero_nf: numero_nf,
-        p_arquivo_nf_url: arquivo_nf_url,
+        p_arquivo_nf_url: arquivo_nf_url ?? undefined,
       });
 
       if (error) {
