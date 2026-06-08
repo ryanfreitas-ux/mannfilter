@@ -54,6 +54,7 @@ function Index() {
   const [navOpen, setNavOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [fileName, setFileName] = useState<string | null>(null);
 
   const openModal = () => {
     setSuccess(null);
@@ -77,6 +78,11 @@ function Index() {
       const canal = String(fd.get("canal") || "");
       const numero_nf = String(fd.get("nf") || "").trim();
       const file = fd.get("upload") as File | null;
+
+      if (!file || file.size === 0) {
+        setErrorMsg("Anexe o arquivo da nota fiscal (PDF, JPG ou PNG).");
+        return;
+      }
 
       let arquivo_nf_url: string | null = null;
       if (file && file.size > 0) {
@@ -440,11 +446,18 @@ function Index() {
                     htmlFor="upload"
                     className="flex items-center gap-3 p-4 border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-brand-green transition-colors"
                   >
-                    <Upload className="h-5 w-5 text-brand-green" />
-                    <span className="text-sm text-muted-foreground">
-                      Clique para enviar (PDF, JPG, PNG)
+                    <Upload className="h-5 w-5 text-brand-green shrink-0" />
+                    <span className="text-sm text-muted-foreground truncate">
+                      {fileName ?? "Clique para enviar (PDF, JPG, PNG)"}
                     </span>
-                    <input id="upload" name="upload" type="file" accept=".pdf,.jpg,.jpeg,.png" required className="hidden" />
+                    <input
+                      id="upload"
+                      name="upload"
+                      type="file"
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      className="hidden"
+                      onChange={(e) => setFileName(e.target.files?.[0]?.name ?? null)}
+                    />
                   </label>
                 </div>
                 <div className="space-y-2 pt-2">
