@@ -762,7 +762,7 @@ function Field({
       <Label htmlFor={id}>
         {label} {required && <span className="text-destructive">*</span>}
       </Label>
-      <Input id={id} type={type} required={required} placeholder={placeholder} />
+      <Input id={id} name={id} type={type} required={required} placeholder={placeholder} />
     </div>
   );
 }
