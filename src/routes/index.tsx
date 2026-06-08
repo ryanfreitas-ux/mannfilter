@@ -85,16 +85,14 @@ function Index() {
       }
 
       let arquivo_nf_url: string | null = null;
-      if (file && file.size > 0) {
-        const ext = file.name.split(".").pop() || "bin";
-        const path = `${cpf.replace(/\D/g, "")}/${Date.now()}.${ext}`;
-        const { error: upErr } = await supabase.storage
-          .from("notas-fiscais")
-          .upload(path, file, { upsert: false, contentType: file.type || undefined });
-        if (upErr) throw upErr;
-        const { data: pub } = supabase.storage.from("notas-fiscais").getPublicUrl(path);
-        arquivo_nf_url = pub.publicUrl;
-      }
+      const ext = file.name.split(".").pop() || "bin";
+      const path = `${cpf.replace(/\D/g, "")}/${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("notas-fiscais")
+        .upload(path, file, { upsert: false, contentType: file.type || undefined });
+      if (upErr) throw upErr;
+      // Bucket is private; store the storage path. Admins generate signed URLs to view.
+      arquivo_nf_url = path;
 
       const { data, error } = await supabase.rpc("registrar_participacao", {
         p_nome: nome,
