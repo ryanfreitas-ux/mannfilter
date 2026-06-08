@@ -78,6 +78,11 @@ function Index() {
       const numero_nf = String(fd.get("nf") || "").trim();
       const file = fd.get("upload") as File | null;
 
+      if (!file || file.size === 0) {
+        setErrorMsg("Anexe o arquivo da nota fiscal (PDF, JPG ou PNG).");
+        return;
+      }
+
       let arquivo_nf_url: string | null = null;
       if (file && file.size > 0) {
         const ext = file.name.split(".").pop() || "bin";
