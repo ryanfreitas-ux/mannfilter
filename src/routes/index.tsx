@@ -457,9 +457,12 @@ function Index() {
                     <span>Autorizo o uso dos meus dados conforme a LGPD.</span>
                   </label>
                 </div>
+                {errorMsg && (
+                  <p className="text-sm text-destructive text-center" role="alert">{errorMsg}</p>
+                )}
                 <DialogFooter>
-                  <Button type="submit" variant="primary" size="lg" className="w-full">
-                    Enviar e gerar número da sorte
+                  <Button type="submit" variant="primary" size="lg" className="w-full" disabled={submitting}>
+                    {submitting ? "Enviando..." : "Enviar e gerar número da sorte"}
                   </Button>
                 </DialogFooter>
               </form>
