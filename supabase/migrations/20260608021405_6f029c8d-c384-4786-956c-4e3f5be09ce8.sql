@@ -1,0 +1,1 @@
+DELETE FROM public.participacoes WHERE cpf='00000000000';
