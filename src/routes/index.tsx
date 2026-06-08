@@ -444,7 +444,7 @@ function Index() {
                     <span className="text-sm text-muted-foreground">
                       Clique para enviar (PDF, JPG, PNG)
                     </span>
-                    <input id="upload" type="file" accept=".pdf,.jpg,.jpeg,.png" className="hidden" />
+                    <input id="upload" name="upload" type="file" accept=".pdf,.jpg,.jpeg,.png" required className="hidden" />
                   </label>
                 </div>
                 <div className="space-y-2 pt-2">
