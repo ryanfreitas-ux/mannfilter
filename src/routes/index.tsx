@@ -52,18 +52,72 @@ function Index() {
   const [open, setOpen] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
   const [navOpen, setNavOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const openModal = () => {
     setSuccess(null);
+    setErrorMsg(null);
     setOpen(true);
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const num = Math.floor(100000 + Math.random() * 900000)
-      .toString()
-      .replace(/(\d{3})(\d{3})/, "$1 $2");
-    setSuccess(num);
+    if (submitting) return;
+    setErrorMsg(null);
+    setSubmitting(true);
+    try {
+      const form = e.currentTarget;
+      const fd = new FormData(form);
+      const nome = String(fd.get("nome") || "").trim();
+      const cpf = String(fd.get("cpf") || "").trim();
+      const whatsapp = String(fd.get("wpp") || "").trim();
+      const email = String(fd.get("email") || "").trim();
+      const data_compra = String(fd.get("data") || "");
+      const canal = String(fd.get("canal") || "");
+      const numero_nf = String(fd.get("nf") || "").trim();
+      const file = fd.get("upload") as File | null;
+
+      let arquivo_nf_url: string | null = null;
+      if (file && file.size > 0) {
+        const ext = file.name.split(".").pop() || "bin";
+        const path = `${cpf.replace(/\D/g, "")}/${Date.now()}.${ext}`;
+        const { error: upErr } = await supabase.storage
+          .from("notas-fiscais")
+          .upload(path, file, { upsert: false, contentType: file.type || undefined });
+        if (upErr) throw upErr;
+        const { data: pub } = supabase.storage.from("notas-fiscais").getPublicUrl(path);
+        arquivo_nf_url = pub.publicUrl;
+      }
+
+      const { data, error } = await supabase.rpc("registrar_participacao", {
+        p_nome: nome,
+        p_cpf: cpf,
+        p_whatsapp: whatsapp,
+        p_email: email,
+        p_data_compra: data_compra,
+        p_canal: canal,
+        p_numero_nf: numero_nf,
+        p_arquivo_nf_url: arquivo_nf_url,
+      });
+
+      if (error) {
+        if (error.message?.includes("CPF_DUPLICADO")) {
+          setErrorMsg("Este CPF já foi cadastrado na promoção.");
+        } else {
+          setErrorMsg("Ocorreu um erro ao registrar sua participação. Tente novamente.");
+        }
+        return;
+      }
+
+      const num = String(data ?? "").replace(/(\d{3})(\d{3})/, "$1 $2");
+      setSuccess(num);
+    } catch (err) {
+      console.error(err);
+      setErrorMsg("Não foi possível enviar sua nota fiscal. Tente novamente.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
