@@ -18,8 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Ticket, Tv, Shirt, Fuel, ShieldCheck, Trophy, Clock, ArrowRight, Menu, X, Upload, CheckCircle2, ChevronDown, Copy, Loader2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { Ticket, Tv, Shirt, Fuel, ShieldCheck, Trophy, Clock, ArrowRight, Menu, X, Upload, CheckCircle2, ChevronDown } from "lucide-react";
 import logo from "@/assets/mann-filter-logo.svg.asset.json";
 import greenFabric from "@/assets/green-fabric.png.asset.json";
 import productImg from "@/assets/mann-product.png.asset.json";
@@ -52,74 +51,18 @@ function Index() {
   const [open, setOpen] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
   const [navOpen, setNavOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [formError, setFormError] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
-  const [fileName, setFileName] = useState<string>("");
 
   const openModal = () => {
     setSuccess(null);
-    setFormError(null);
-    setFileName("");
     setOpen(true);
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setLoading(true);
-    setFormError(null);
-
-    const form = e.currentTarget;
-    const nome = (form.elements.namedItem("nome") as HTMLInputElement).value;
-    const cpf = (form.elements.namedItem("cpf") as HTMLInputElement).value.replace(/\D/g, "");
-    const wpp = (form.elements.namedItem("wpp") as HTMLInputElement).value;
-    const email = (form.elements.namedItem("email") as HTMLInputElement).value;
-    const dataCompra = (form.elements.namedItem("data") as HTMLInputElement).value;
-    const canal = (form.elements.namedItem("canal") as HTMLSelectElement).value;
-    const nf = (form.elements.namedItem("nf") as HTMLInputElement).value;
-    const fileInput = form.elements.namedItem("upload") as HTMLInputElement;
-    const file = fileInput?.files?.[0] ?? null;
-
-    let arquivoNfUrl: string | null = null;
-
-    try {
-      if (file) {
-        const ext = file.name.split(".").pop();
-        const path = `${Date.now()}-${cpf}.${ext}`;
-        const { error: uploadError } = await supabase.storage
-          .from("notas-fiscais")
-          .upload(path, file);
-        if (uploadError) throw new Error("Erro ao enviar o arquivo da NF. Tente novamente.");
-        arquivoNfUrl = supabase.storage.from("notas-fiscais").getPublicUrl(path).data.publicUrl;
-      }
-
-      const { data: numeroSorte, error: rpcError } = await supabase.rpc("registrar_participacao", {
-        p_nome: nome,
-        p_cpf: cpf,
-        p_whatsapp: wpp,
-        p_email: email,
-        p_data_compra: dataCompra,
-        p_canal: canal,
-        p_numero_nf: nf,
-        p_arquivo_nf_url: arquivoNfUrl,
-      });
-
-      if (rpcError) {
-        if (rpcError.message.includes("CPF_DUPLICADO")) {
-          setFormError("Este CPF já foi cadastrado nesta promoção.");
-        } else {
-          setFormError("Erro ao cadastrar. Por favor, tente novamente.");
-        }
-        setLoading(false);
-        return;
-      }
-
-      setSuccess(numeroSorte as string);
-    } catch (err: unknown) {
-      setFormError(err instanceof Error ? err.message : "Erro inesperado. Tente novamente.");
-    } finally {
-      setLoading(false);
-    }
+    const num = Math.floor(100000 + Math.random() * 900000)
+      .toString()
+      .replace(/(\d{3})(\d{3})/, "$1 $2");
+    setSuccess(num);
   };
 
   return (
@@ -424,7 +367,6 @@ function Index() {
                     <Label htmlFor="canal">Canal</Label>
                     <select
                       id="canal"
-                      name="canal"
                       required
                       className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
@@ -444,16 +386,9 @@ function Index() {
                   >
                     <Upload className="h-5 w-5 text-brand-green" />
                     <span className="text-sm text-muted-foreground">
-                      {fileName ? fileName : "Clique para enviar (PDF, JPG, PNG)"}
+                      Clique para enviar (PDF, JPG, PNG)
                     </span>
-                    <input
-                      id="upload"
-                      name="upload"
-                      type="file"
-                      accept=".pdf,.jpg,.jpeg,.png"
-                      className="hidden"
-                      onChange={(e) => setFileName(e.target.files?.[0]?.name ?? "")}
-                    />
+                    <input id="upload" type="file" accept=".pdf,.jpg,.jpeg,.png" className="hidden" />
                   </label>
                 </div>
                 <div className="space-y-2 pt-2">
@@ -466,18 +401,9 @@ function Index() {
                     <span>Autorizo o uso dos meus dados conforme a LGPD.</span>
                   </label>
                 </div>
-                {formError && (
-                  <p className="text-sm text-destructive text-center bg-destructive/10 rounded-lg px-3 py-2">
-                    {formError}
-                  </p>
-                )}
                 <DialogFooter>
-                  <Button type="submit" variant="primary" size="lg" className="w-full" disabled={loading}>
-                    {loading ? (
-                      <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Enviando...</>
-                    ) : (
-                      "Enviar e gerar número da sorte"
-                    )}
+                  <Button type="submit" variant="primary" size="lg" className="w-full">
+                    Enviar e gerar número da sorte
                   </Button>
                 </DialogFooter>
               </form>
@@ -494,23 +420,11 @@ function Index() {
               <div className="font-display text-5xl tracking-widest text-brand-green-dark bg-brand-yellow rounded-xl py-5">
                 {success}
               </div>
-              <Button
-                variant="outline"
-                className="w-full gap-2"
-                onClick={() => {
-                  navigator.clipboard.writeText(success!);
-                  setCopied(true);
-                  setTimeout(() => setCopied(false), 2000);
-                }}
-              >
-                <Copy className="h-4 w-4" />
-                {copied ? "Copiado!" : "Copiar número"}
-              </Button>
               <div className="flex flex-col sm:flex-row gap-2 pt-2">
                 <Button
                   variant="primary"
                   className="flex-1"
-                  onClick={() => { setSuccess(null); setFileName(""); }}
+                  onClick={() => setSuccess(null)}
                 >
                   Cadastrar outra nota
                 </Button>
@@ -848,7 +762,7 @@ function Field({
       <Label htmlFor={id}>
         {label} {required && <span className="text-destructive">*</span>}
       </Label>
-      <Input id={id} name={id} type={type} required={required} placeholder={placeholder} />
+      <Input id={id} type={type} required={required} placeholder={placeholder} />
     </div>
   );
 }
