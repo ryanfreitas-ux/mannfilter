@@ -115,6 +115,28 @@ function Index() {
       }
 
       const num = String(data ?? "").replace(/(\d{3})(\d{3})/, "$1 $2");
+
+      // Notifica webhook externo (Make). Falhas não afetam o fluxo do usuário.
+      try {
+        await fetch("https://hook.us1.make.celonis.com/hoc4sikxnpoqh73unambcyyp0msxaflz", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            nome,
+            cpf,
+            whatsapp,
+            email,
+            data_compra,
+            canal,
+            numero_nf,
+            arquivo_nf_url,
+            numero_sorte: String(data ?? ""),
+          }),
+        });
+      } catch (webhookErr) {
+        console.error("Webhook notification failed:", webhookErr);
+      }
+
       setSuccess(num);
     } catch (err) {
       console.error(err);
